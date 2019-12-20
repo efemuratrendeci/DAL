@@ -1,4 +1,5 @@
-﻿using Libraries.DataAcces.Core.Model.ADO.Net_Models;
+﻿using Libraries.DataAcces.Core.Entity;
+using Libraries.DataAcces.Core.Model.ADO.Net_Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,7 +9,8 @@ using System.Text;
 
 namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
 {
-    public abstract class ADOEntityRepositioryBase : IDisposable
+    public abstract class ADOEntityRepositioryBase<TQuery> : IDisposable 
+        where TQuery : class, IQuery, new()
     {
         private SqlConnection _connection;
         private SqlTransaction _transaction;
@@ -54,7 +56,7 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
                 throw ex;
             }
         }
-        public List<DataRow> Select(ExecuteQueryModel executeQuery)
+        public List<DataRow> Select(TQuery executeQuery)
         {
             SqlCommand sqlCommand = new SqlCommand()
             {
@@ -79,7 +81,7 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
             }
 
         }
-        public void Action(ExecuteQueryModel executeQuery)
+        public void Action(TQuery executeQuery)
         {
             SqlCommand sqlCommand = new SqlCommand()
             {
