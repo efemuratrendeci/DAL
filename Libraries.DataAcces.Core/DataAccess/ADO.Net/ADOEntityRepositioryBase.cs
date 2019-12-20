@@ -1,4 +1,6 @@
 ﻿using Libraries.DataAcces.Core.Entity;
+using Libraries.DataAcces.Core.Enums;
+using Libraries.DataAcces.Core.Helpers;
 using Libraries.DataAcces.Core.Model.ADO.Net_Models;
 using System;
 using System.Collections.Generic;
@@ -14,8 +16,10 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
     {
         private SqlConnection _connection;
         private SqlTransaction _transaction;
+        private ParameterHelper _parameterHelper;
         public ADOEntityRepositioryBase(string connectionString, bool openTransaction)
         {
+            _parameterHelper = new ParameterHelper();
             _connection = new SqlConnection(connectionString);
             try
             {
@@ -67,7 +71,7 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
             };
             foreach (var item in executeQuery.Parameters)
             {
-                sqlCommand.Parameters.AddWithValue(item.Name, !string.IsNullOrWhiteSpace(item.StringValue) ? item.StringValue : string.Empty);
+                sqlCommand.Parameters.AddWithValue(item.Name, _parameterHelper.GetValue(item));
             }
             DataTable dt = new DataTable();
             try
@@ -92,10 +96,7 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
             };
             foreach (var item in executeQuery.Parameters)
             {
-                sqlCommand.Parameters.AddWithValue(item.Name, item.StringValue != null ? SqlDbType.NVarChar
-                    : item.IntegerValue != null ? SqlDbType.Int
-                    : item.DecimalValue != null ? SqlDbType.Money
-                    : SqlDbType.DateTime);
+                sqlCommand.Parameters.AddWithValue(item.Name, _parameterHelper.GetValue(item));
             }
             try
             {
