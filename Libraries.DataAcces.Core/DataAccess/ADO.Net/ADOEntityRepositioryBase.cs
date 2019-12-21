@@ -1,7 +1,7 @@
 ﻿using Libraries.DataAcces.Core.Entity;
 using Libraries.DataAcces.Core.Enums;
-using Libraries.DataAcces.Core.Helpers;
 using Libraries.DataAcces.Core.Model.ADO.Net_Models;
+using Libraries.DataAcces.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,10 +16,10 @@ namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
     {
         private SqlConnection _connection;
         private SqlTransaction _transaction;
-        private ParameterHelper _parameterHelper;
+        private ParameterService _parameterHelper;
         public ADOEntityRepositioryBase(string connectionString, bool openTransaction)
         {
-            _parameterHelper = new ParameterHelper();
+            _parameterHelper = new ParameterService();
             _connection = new SqlConnection(connectionString);
             try
             {

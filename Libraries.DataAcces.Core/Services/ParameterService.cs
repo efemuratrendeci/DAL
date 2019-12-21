@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Libraries.DataAcces.Core.Helpers
+namespace Libraries.DataAcces.Core.Services
 {
-    public class ParameterHelper
+    public class ParameterService
     {
         public dynamic GetValue(IQueryParams parameter)
         {
