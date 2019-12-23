@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "Main": "Server=.;Database=BasicDB;Trusted_Connection=true;MultipleActiveResultSets=true"
+  }
+}

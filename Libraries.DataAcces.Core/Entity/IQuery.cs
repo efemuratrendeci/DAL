@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Libraries.DataAcces.Core.Entity
 {
-    public interface IQuery
+    public interface IQuery<T> where T : class, IQueryParams, new()
     {
         public string QueryText { get; set; }
-        public List<IQueryParams> Parameters { get; set; }
+        public List<T> Parameters { get; set; }
     }
 }

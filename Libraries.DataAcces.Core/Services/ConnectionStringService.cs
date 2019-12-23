@@ -23,7 +23,7 @@ namespace Libraries.DataAcces.Core.Services
                 throw ex;
             }
         }
-        public static string ConnectionString { get { return new ConfigurationBuilder().AddJsonFile(_path).Build()["ConnectionStrings:" + _connectionStringName]; } }
+        public string ConnectionString { get { return new ConfigurationBuilder().AddJsonFile(_path).Build()["ConnectionStrings:" + _connectionStringName]; } }
         
     }
 }

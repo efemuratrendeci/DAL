@@ -1,18 +1,16 @@
 ﻿using Libraries.DataAcces.Core.Entity;
-using Libraries.DataAcces.Core.Enums;
-using Libraries.DataAcces.Core.Model.ADO.Net_Models;
 using Libraries.DataAcces.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 
 namespace Libraries.DataAcces.Core.DataAccess.ADO.Net
 {
-    public abstract class ADOEntityRepositioryBase<TQuery> : IDisposable 
-        where TQuery : class, IQuery, new()
+    public abstract class ADOEntityRepositioryBase<TQuery, TQueryParams> : IDisposable
+        where TQuery : class, IQuery<TQueryParams>, new()
+        where TQueryParams : class, IQueryParams, new()
     {
         private SqlConnection _connection;
         private SqlTransaction _transaction;
