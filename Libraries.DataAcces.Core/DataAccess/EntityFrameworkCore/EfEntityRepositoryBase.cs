@@ -10,10 +10,19 @@ using static Libraries.DataAcces.Core.DataAccess.IEntityRepository;
 
 namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
 {
-    public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity>
+    public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity>, IDisposable
         where TEntity : class, IEntity, new()
         where TContext : DbContext, new()
     {
+        private DbContext _context;
+        private DbContextTransaction _contextTransaction;
+        public EfEntityRepositoryBase(bool openTransaction)
+        {
+            _context = new TContext();
+            if (openTransaction)
+                _contextTransaction = _context.Database.BeginTransaction();
+        }
+
         /// <summary>
         /// Supports Add, Update, Delete functions that can define by LibraryEntityState
         /// </summary>
@@ -23,23 +32,21 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
         {
             try
             {
-                using (var context = new TContext())
+                var modifyEntity = _context.Entry(entity);
+                switch (entityState)
                 {
-                    var modifyEntity = context.Entry(entity);
-                    switch (entityState)
-                    {
-                        case LibraryEntityState.Add:
-                            modifyEntity.State = EntityState.Added;
-                            break;
-                        case LibraryEntityState.Update:
-                            modifyEntity.State = EntityState.Modified;
-                            break;
-                        case LibraryEntityState.Delete:
-                            modifyEntity.State = EntityState.Deleted;
-                            break;
-                    }
-                    context.SaveChanges();
+                    case LibraryEntityState.Add:
+                        modifyEntity.State = EntityState.Added;
+                        break;
+                    case LibraryEntityState.Update:
+                        modifyEntity.State = EntityState.Modified;
+                        break;
+                    case LibraryEntityState.Delete:
+                        modifyEntity.State = EntityState.Deleted;
+                        break;
                 }
+                _context.SaveChanges();
+
             }
             catch (Exception ex)
             {
@@ -57,10 +64,7 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
         {
             try
             {
-                using (var context = new TContext())
-                {
-                    return context.Set<TEntity>().SingleOrDefault(filter);
-                }
+                return _context.Set<TEntity>().SingleOrDefault(filter);
             }
             catch (Exception ex)
             {
@@ -78,12 +82,9 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
         {
             try
             {
-                using (var context = new TContext())
-                {
-                    return filter == null
-                        ? context.Set<TEntity>().ToList()
-                        : context.Set<TEntity>().Where(filter).ToList();
-                }
+                return filter == null
+                    ? _context.Set<TEntity>().ToList()
+                    : _context.Set<TEntity>().Where(filter).ToList();
             }
             catch (Exception ex)
             {
@@ -91,6 +92,26 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
                 throw ex;
             }
 
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (_contextTransaction != null)
+                {
+                    _contextTransaction.Commit();
+                    _contextTransaction = null;
+                }
+
+                _contextTransaction.Dispose();
+                _context.Dispose();
+            }
+            catch (Exception)
+            {
+                _contextTransaction.Rollback();
+                throw;
+            }
         }
     }
 }

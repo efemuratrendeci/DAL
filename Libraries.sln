@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libraries.DataAcces.Core", "Libraries.DataAcces.Core\Libraries.DataAcces.Core.csproj", "{E1C0B3A3-C101-4C68-8E38-7409EA33FDE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libraries.DataAccess.Usage", "Libraries.DataAccess.Usage\Libraries.DataAccess.Usage.csproj", "{DBD226DB-4BB0-4F1C-8CA8-347553842F30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libraries.DataAccess.Usage", "Libraries.DataAccess.Usage\Libraries.DataAccess.Usage.csproj", "{DBD226DB-4BB0-4F1C-8CA8-347553842F30}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SQLScript", "SQLScript\SQLScript.sqlproj", "{321DA068-52FC-4759-A43C-6411AB8571F9}"
 EndProject
