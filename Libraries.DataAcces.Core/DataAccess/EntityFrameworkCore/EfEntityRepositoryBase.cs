@@ -1,8 +1,9 @@
 ﻿using Libraries.DataAcces.Core.Entity;
 using Libraries.DataAcces.Core.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using System.Transactions;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,42 +11,57 @@ using static Libraries.DataAcces.Core.DataAccess.IEntityRepository;
 
 namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
 {
-    public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity>, IDisposable
+    public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity, TContext>
         where TEntity : class, IEntity, new()
         where TContext : DbContext, new()
     {
-        private DbContext _context;
-        private DbContextTransaction _contextTransaction;
-        public EfEntityRepositoryBase(bool openTransaction)
-        {
-            _context = new TContext();
-            if (openTransaction)
-                _contextTransaction = _context.Database.BeginTransaction();
-        }
 
         /// <summary>
         /// Supports Add, Update, Delete functions that can define by LibraryEntityState
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="entityState"></param>
-        public void Action(TEntity entity, LibraryEntityState entityState)
+        public TEntity Action(TEntity entity, LibraryEntityState entityState, TContext context = null)
         {
             try
             {
-                var modifyEntity = _context.Entry(entity);
-                switch (entityState)
+                if (context == null)
                 {
-                    case LibraryEntityState.Add:
-                        modifyEntity.State = EntityState.Added;
-                        break;
-                    case LibraryEntityState.Update:
-                        modifyEntity.State = EntityState.Modified;
-                        break;
-                    case LibraryEntityState.Delete:
-                        modifyEntity.State = EntityState.Deleted;
-                        break;
+                    using (context = new TContext())
+                    {
+                        var modifyEntity = context.Entry(entity);
+                        switch (entityState)
+                        {
+                            case LibraryEntityState.Add:
+                                modifyEntity.State = EntityState.Added;
+                                break;
+                            case LibraryEntityState.Update:
+                                modifyEntity.State = EntityState.Modified;
+                                break;
+                            case LibraryEntityState.Delete:
+                                modifyEntity.State = EntityState.Deleted;
+                                break;
+                        }
+                        return entity;
+                    }
                 }
-                _context.SaveChanges();
+                else
+                {
+                    var modifyEntity = context.Entry(entity);
+                    switch (entityState)
+                    {
+                        case LibraryEntityState.Add:
+                            modifyEntity.State = EntityState.Added;
+                            break;
+                        case LibraryEntityState.Update:
+                            modifyEntity.State = EntityState.Modified;
+                            break;
+                        case LibraryEntityState.Delete:
+                            modifyEntity.State = EntityState.Deleted;
+                            break;
+                    }
+                    return entity;
+                }
 
             }
             catch (Exception ex)
@@ -60,11 +76,21 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public TEntity Get(Expression<Func<TEntity, bool>> filter = null)
+        public TEntity Get(Expression<Func<TEntity, bool>> filter = null, TContext context = null)
         {
             try
             {
-                return _context.Set<TEntity>().SingleOrDefault(filter);
+                if (context == null)
+                {
+                    using (context = new TContext())
+                    {
+                        return context.Set<TEntity>().SingleOrDefault(filter);
+                    }
+                }
+                else
+                {
+                    return context.Set<TEntity>().SingleOrDefault(filter);
+                }
             }
             catch (Exception ex)
             {
@@ -78,13 +104,25 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public List<TEntity> GetList(Expression<Func<TEntity, bool>> filter = null)
+        public List<TEntity> GetList(Expression<Func<TEntity, bool>> filter = null, TContext context = null)
         {
             try
             {
-                return filter == null
-                    ? _context.Set<TEntity>().ToList()
-                    : _context.Set<TEntity>().Where(filter).ToList();
+                if (context == null)
+                {
+                    using (context = new TContext())
+                    {
+                        return filter == null
+                            ? context.Set<TEntity>().ToList()
+                            : context.Set<TEntity>().Where(filter).ToList();
+                    }
+                }
+                else
+                {
+                    return filter == null
+                        ? context.Set<TEntity>().ToList()
+                        : context.Set<TEntity>().Where(filter).ToList();
+                }
             }
             catch (Exception ex)
             {
@@ -94,24 +132,5 @@ namespace Libraries.DataAcces.Core.DataAccess.EntityFrameworkCore
 
         }
 
-        public void Dispose()
-        {
-            try
-            {
-                if (_contextTransaction != null)
-                {
-                    _contextTransaction.Commit();
-                    _contextTransaction = null;
-                }
-
-                _contextTransaction.Dispose();
-                _context.Dispose();
-            }
-            catch (Exception)
-            {
-                _contextTransaction.Rollback();
-                throw;
-            }
-        }
     }
 }
